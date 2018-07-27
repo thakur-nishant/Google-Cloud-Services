@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Google Cloud</title>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<!-- Latest compiled JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      
+    </script>
+</head>
+<body>
+	<div class="container">
+		<h1>Hello, I Survived, Nishant Thakur</h1>
+		<h2>Student ID: 1001544591</h2>
+		<img src="static/Minnow.jpg" height="100" width="100">
+		<div id="upperdiv"></div>
+		<!-- 
+		<h2>Upload CSV file to Azure SQL Database</h2>
+		<form id="csvUpload" action="{{ script_root }}/uploader" method="post" enctype = "multipart/form-data">
+			<input type = "file" name = "file" />
+			<input type = "submit"/>
+		</form>
+		 -->
+
+		<h2>Visualize Data for Earthquake</h2>
+		<h3>Search with magnitude and Date Range</h3>
+		<form id="searchMagnitudeRange" action = "" method = "POST">
+			<p>Magnitude Range: <input type = "text" name = "range1" value="0"/> - <input type = "text" name = "range2" value="10"/> </p>
+			<p>Start Date: <input type="date" name="startDate"></p>
+			<p>End Date: <input type="date" name="endDate"></p>
+			<p><input type = "submit" value = "submit" /></p>
+		</form>
+		<br/>
+
+
+		<h2>Visualize Data for Titanic</h2>
+		<form id="percentInfo" action = "" method = "POST">
+			<p>SEX: 
+				<select name="sex">
+					<option value="male">Male</option>
+					<option value="female">Female</option>
+				</select>
+			</p>
+			<p><input type = "submit" value = "submit" /></p>
+		</form>
+		<br/>
+
+
+		<h3>For K means clustering</h3>
+		<form id="visualizeData" action = "" method = "POST">
+			<p>X-axis: 
+				<select name="xaxis">
+					<option value="pclass">Passanger Class</option>
+					<option value="survived">Survived</option>
+					<option value="age">Age</option>
+					<option value="sex">Sex</option>
+					<option value="sibsp">sibsp</option>
+					<option value="parch">Parch</option>
+					<option value="fare">Fare</option>
+					<option value="cabin">Cabin</option>
+					<option value="embarked">embarked</option>
+					<!-- <option value="boat">boat</option>
+					<option value="body">body</option> -->
+				</select>
+			</p>
+			<p>Y-asix: 
+				<select name="yaxis">
+					<option value="pclass">Passanger Class</option>
+					<option value="survived">Survived</option>
+					<option value="age">Age</option>
+					<option value="sex">Sex</option>
+					<option value="sibsp">sibsp</option>
+					<option value="parch">Parch</option>
+					<option value="fare">Fare</option>
+					<option value="cabin">Cabin</option>
+					<option value="embarked">embarked</option>
+					<!-- <option value="boat">boat</option>
+					<option value="body">body</option> -->
+				</select>
+			</p>
+			<p>Number of Clusters: <input type = "text" name = "kclusters" value="0"/></p>
+			<p><input type = "submit" value = "submit" /></p>
+		</form>
+		<br/>
+
+		<h2>Visualize Data for Quiz 5</h2>
+		<form id="ageInterval" action = "" method = "POST">
+			<p>Age Interval: <input type = "text" name = "range1" value="0"/></p>
+			<p><input type = "submit" value = "submit" /></p>
+		</form>
+
+		<h2>Search Result:</h2>
+		<div class="graph">
+			
+		</div>
+		<div id="searchResults">
+			<p class="jqrow"></p>
+			<div id="columnchart_material" style="width: 800px; height: 500px;"></div>
+
+		</div>
+		<br/>
+	</div>
+
+
+
+<script>
+
+	$("#ageInterval").submit(function(e) {
+		let url = "{{ script_root }}/ageInterval"; // the script where you handle the form input.
+		$.ajax({
+			type: "POST",
+			url: url,
+			data: $(this).serialize(), // serializes the form's elements.
+			success: function(data)
+			{	
+				console.log(data); // show response
+				$("#searchResults").empty();
+				$(".graph").empty();
+				var result = data['result'];
+				console.log(result.length);
+				$('#searchResults').append('<p class="jqrow"> Result Count: '+ result.length +' </p>');	
+				
+				var $drow = '<p class="jqrow">'+JSON.stringify(data)+'</p>'; 
+
+			      // for PIE chart
+
+			      google.charts.load('current', {'packages':['corechart']});
+      				google.charts.setOnLoadCallback(drawChart1);
+
+			      function drawChart1() {
+
+			        let data = google.visualization.arrayToDataTable(result);
+
+			        let options = {
+			          title: 'Earthquake Statistics',
+			            subtitle: 'Number of earthquakes in a given range',
+			        };
+			        $('#searchResults').append('<div id="piechart" style="width: 900px; height: 500px;"></div>');
+			        let chart1 = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        			chart1.draw(data, options);
+
+
+        			// for bar chart
+				google.charts.load('current', {'packages':['bar']});
+			      google.charts.setOnLoadCallback(drawChart);
+
+			      function drawChart() {
+			        let data = google.visualization.arrayToDataTable(result);
+
+			        let options = {
+			          chart: {
+			            title: 'Earthquake Statistics',
+			            subtitle: 'Number of earthquakes in a given range',
+			          }
+			        };
+			        
+			        let chart = new google.charts.Bar(document.getElementById('upperdiv'));
+
+			        chart.draw(data, google.charts.Bar.convertOptions(options));
+			      }
+
+				$('#searchResults').append($drow);	
+			}
+		}
+		});
+		e.preventDefault(); // avoid to execute the actual submit of the form.
+	});
+
+	$("#searchMagnitudeRange").submit(function(e) {
+		let url = "{{ script_root }}/searchMagnitudeRange"; // the script where you handle the form input.
+		$.ajax({
+			type: "POST",
+			url: url,
+			data: $(this).serialize(), // serializes the form's elements.
+			success: function(data)
+			{	
+				console.log(data); // show response
+				$("#searchResults").empty();
+				$(".graph").empty();
+				var result = data['result'];
+				console.log(result.length);
+				$('#searchResults').append('<p class="jqrow"> Result Count: '+ result.length +' </p>');	
+				
+				var $drow = '<p class="jqrow">'+JSON.stringify(data)+'</p>'; 
+
+				// for bar chart
+				google.charts.load('current', {'packages':['bar']});
+			      google.charts.setOnLoadCallback(drawChart);
+
+			      function drawChart() {
+			        let data = google.visualization.arrayToDataTable(result);
+
+			        let options = {
+			          chart: {
+			            title: 'Earthquake Statistics',
+			            subtitle: 'Number of earthquakes in a given range',
+			          }
+			        };
+			        
+					$('#searchResults').append('<div id="columnchart_material" style="width: 800px; height: 500px;"></div>');
+					$('#searchResults').append('<div id="piechart" style="width: 900px; height: 500px;"></div>');
+			        let chart = new google.charts.Bar(document.getElementById('columnchart_material'));
+
+			        chart.draw(data, google.charts.Bar.convertOptions(options));
+			      }
+
+			      // for PIE chart
+
+			      google.charts.load('current', {'packages':['corechart']});
+      				google.charts.setOnLoadCallback(drawChart1);
+
+			      function drawChart1() {
+
+			        let data = google.visualization.arrayToDataTable(result);
+
+			        let options = {
+			          title: 'Earthquake Statistics',
+			            subtitle: 'Number of earthquakes in a given range',
+			        };
+
+			        let chart1 = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        			chart1.draw(data, options);
+				$('#searchResults').append($drow);	
+			}
+		}
+		});
+		e.preventDefault(); // avoid to execute the actual submit of the form.
+	});
+
+	$("#percentInfo").submit(function(e) {
+		let url = "{{ script_root }}/percentInfo"; // the script where you handle the form input.
+		$.ajax({
+			type: "POST",
+			url: url,
+			data: $(this).serialize(), // serializes the form's elements.
+			success: function(data)
+			{	
+				console.log(data); // show response
+				$("#searchResults").empty();
+				$(".graph").empty();
+				var result = data['result'];
+				console.log(result.length);
+				$('#searchResults').append('<p class="jqrow"> Result Count: '+ result.length +' </p>');	
+				
+				var $drow = '<p class="jqrow">'+JSON.stringify(data)+'</p>'; 
+
+				// for bar chart
+				google.charts.load('current', {'packages':['bar']});
+			      google.charts.setOnLoadCallback(drawStuff);
+
+			      function drawStuff() {
+			        var data = new google.visualization.arrayToDataTable(result);
+
+			        var options = {
+			          width: 800,
+			          chart: {
+			            title: 'Survival Statistics'
+			          },
+			          bars: 'horizontal', // Required for Material Bar Charts.
+			          series: {
+			            0: { axis: 'distance' }, // Bind series 0 to an axis named 'distance'.
+			            1: { axis: 'brightness' } // Bind series 1 to an axis named 'brightness'.
+			          },
+			          axes: {
+			            x: {
+			              distance: {label: 'parsecs'}, // Bottom x-axis.
+			              brightness: {side: 'top', label: 'apparent magnitude'} // Top x-axis.
+			            }
+			          }
+			        };
+					$('#searchResults').append('<div id="dual_x_div" style="width: 800px; height: 500px;"></div>');
+
+			      var chart = new google.charts.Bar(document.getElementById('dual_x_div'));
+			      chart.draw(data, options);
+			    };
+				
+			}
+		});
+		e.preventDefault(); // avoid to execute the actual submit of the form.
+	});
+
+
+	var xValue = []
+	var yValue = []
+	
+	$("#visualizeData").submit(function(e) {
+		let url = "{{ script_root }}/visualizeData"; // the script where you handle the form input.
+		$.ajax({
+			type: "POST",
+			url: url,
+			data: $(this).serialize(), // serializes the form's elements.
+			success: function(data)
+			{
+				console.log(data); // show response
+				$("#searchResults").empty();
+				$(".graph").empty();
+				$(function() {
+					$('#searchResults').append('<p class="jqrow"><b> Centroids:</b></p>');	
+					$.each(data['centroids'], function(i, item) {
+						$('#searchResults').append('<p class="jqrow">'+ JSON.stringify(item) +'</p>');	
+					});
+				});
+
+				$(function() {
+					$('#searchResults').append('<div id="clusterdiv"><p class="jqrow"><b> Number of points in Cluster:</b></p><div>');	
+				});
+
+				$(function() {
+					$('#searchResults').append('<br/><p class="jqrow"><b> Distance of each point from the centroid: ('+data['pointDistances'].length+' total points) </b></p>');	
+					$.each(data['pointDistances'], function(i, item) {
+						xValue.push(item.point[0]);
+						yValue.push(item.point[1]);
+						$('#searchResults').append('<p class="jqrow">'+ JSON.stringify(item) +'</p>');	
+					});
+
+					var margin = {top: 20, right: 20, bottom: 30, left: 40},
+					width = 960 - margin.left - margin.right,
+					height = 500 - margin.top - margin.bottom;
+
+					var color = d3.scale.category20();
+
+					// x and y scales, I've used linear here but there are other options
+					// the scales translate data values to pixel values for you
+					var x = d3.scale.linear()
+							  .domain([d3.min(xValue)-1, d3.max(xValue)+1])  // the range of the values to plot
+							  .range([ 0, width ]);        // the pixel range of the x-axis
+
+					var y = d3.scale.linear()
+							  .domain([d3.min(yValue)-1, d3.max(yValue)+1])
+							  .range([ height, 0 ]);
+
+					// the chart object, includes all margins
+					var chart = d3.select('.graph')
+								.append('svg:svg')
+								.attr('width', width + margin.right + margin.left)
+								.attr('height', height + margin.top + margin.bottom)
+								.attr('class', 'chart');
+
+					// the main object where the chart and axis will be drawn
+					var main = chart.append('g')
+					.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+					.attr('width', width)
+					.attr('height', height)
+					.attr('class', 'main');
+
+					// draw the x axis
+					var xAxis = d3.svg.axis()
+					.scale(x)
+					.orient('bottom');
+
+					main.append('g')
+					.attr('transform', 'translate(0,' + height + ')')
+					.attr('class', 'main axis date')
+					.call(xAxis);
+
+					// draw the y axis
+					var yAxis = d3.svg.axis()
+					.scale(y)
+					.orient('left');
+
+					main.append('g')
+					.attr('transform', 'translate(0,0)')
+					.attr('class', 'main axis date')
+					.call(yAxis);
+
+					// draw the graph object
+					var g = main.append("svg:g"); 
+					for(c=0; c < data['clusters'].length; c++){
+						$('#clusterdiv').append('<p style="color: '+color(c)+';"> Cluster '+(c+1)+': '+ JSON.stringify(data['clusters'][c].length) +'</p>');
+						g.selectAll("scatter-dots")
+						.data(data['clusters'][c])  // using the values in the yValue array
+						.enter().append("svg:circle")  // create a new circle for each value
+						.attr("cy", function (d) { return y(d[1]); } ) // translate y value to a pixel
+						.attr("cx", function (d,i) { return x(d[0]); } ) // translate x value
+						.style("fill", function(d) { return color(c); })
+						.attr("r", 2) // radius of circle
+						.style("opacity", 0.7); // opacity of circle
+					}
+
+					g.selectAll(".centroids")
+						.data(data['centroids'])
+						.enter().append('rect')
+						  .attr('class', 'centroid')
+						  .attr("x", function(d) { return x(d[0]) -0.5; })
+						  .attr("y", function(d) { return y(d[1]) - 0.5; })
+						  .attr('width', 5)
+						  .attr('height', 5)
+						  .attr('rx', 1)
+						  .attr('ry', 1)
+						  .style("fill", function(d, i) { return color(i); })
+					
+				});
+			}
+		});
+		e.preventDefault(); // avoid to execute the actual submit of the form.
+	});
+
+	
+</script>
+</body>
+</html>
